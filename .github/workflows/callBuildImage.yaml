@@ -17,7 +17,7 @@ on:
         type: string
       push_image:
         required: true
-        type: boolean
+        type: string
       image_name:
         required: true
         type: string
@@ -29,7 +29,7 @@ on:
         type: string
       upload_artifact:
         required: true
-        type: boolean
+        type: string
     outputs:
       imageTag:
         description: "tag of image ci"
