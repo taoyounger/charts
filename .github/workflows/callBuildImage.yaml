@@ -75,6 +75,12 @@ jobs:
               echo "build_platform=${{ inputs.build_platform }}" >> $GITHUB_ENV
               echo "upload_artifact=${{ inputs.upload_artifact }}" >> $GITHUB_ENV
               echo "upload_image_artifact_name=image-${{ inputs.code_sha }}" >> $GITHUB_ENV
+          
+              # spidernet-io/charts -> spidernet-io
+              org_name=$( awk -F'/' '{print $1}'  <<< "${{ env.IMAGE_REPO }}" )
+              # ghcr.io/spidernet-io/rdma-tools
+              echo "image_full_name=${{ env.ONLINE_REGISTER }}/${org_name}/${{ inputs.image_name }}" >> $GITHUB_ENV
+          
           else
               echo "unexpected event: ${{ github.event_name }}"
               exit 1
@@ -115,7 +121,7 @@ jobs:
           platforms: ${{ env.build_platform }}
           outputs: type=tar,dest=/tmp/${{ env.upload_image_artifact_name }}.tar
           tags: |
-            ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ env.image_name }}:${{ env.image_tag }}
+            ${{ env.image_full_name }}:${{ env.image_tag }}
           build-args: |
             GIT_COMMIT_VERSION=${{ env.commitver }}
             GIT_COMMIT_TIME=${{ env.committime }}
@@ -135,13 +141,13 @@ jobs:
           mkdir -p image-digest/
           echo "## ${{ env.image_name }}" > image-digest/${{ env.image_name }}.txt
           echo "" >> image-digest/${{ env.image_name }}.txt
-          echo "\`${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ env.image_name }}:${{ env.image_tag }}@${{ steps.docker_build_release.outputs.digest }}\`" >> image-digest/${{ env.image_name }}.txt
+          echo "\`${{ env.image_full_name }}:${{ env.image_tag }}@${{ steps.docker_build_release.outputs.digest }}\`" >> image-digest/${{ env.image_name }}.txt
           echo "" >> image-digest/${{ env.image_name }}.txt
 
       - name: Upload artifact digests
         uses: actions/upload-artifact@v3.1.3
         with:
-          name: image-digest-${{ env.image_name }}
+          name: image-digest
           path: image-digest
           retention-days: 1
 
@@ -159,7 +165,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           path: image-digest/
-          name: image-digest-${{ env.image_name }}
+          name: image-digest
 
       - name: Image Digests Output
         shell: bash
