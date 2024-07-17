@@ -3,6 +3,7 @@
 # Copyright 2024 Authors of spidernet-io
 # SPDX-License-Identifier: Apache-2.0
 
+set -x
 set -o xtrace
 set -o errexit
 set -o pipefail
@@ -38,7 +39,7 @@ ln -fs /usr/share/zoneinfo/UTC /etc/localtime
 apt-get install -y --no-install-recommends "${packages[@]}"
 
 # cuda
-wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+wget --no-check-certificate https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
 dpkg -i cuda-keyring_1.1-1_all.deb
 apt-get update
 # nvidia-smi
