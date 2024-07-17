@@ -82,7 +82,6 @@ jobs:
     timeout-minutes: 30
     needs: [get_info]
     uses: ./.github/workflows/callBuildImage.yaml
-    secrets: inherit
     with:
       code_sha: ${{ needs.get_info.outputs.code_sha }}
       image_tag: ${{ needs.get_info.outputs.image_tag }}
@@ -91,3 +90,4 @@ jobs:
       dockerfile_dirctory: ${{ needs.get_info.outputs.dockerfile_dirctory }}
       build_platform: ${{ needs.get_info.outputs.build_platform }}
       upload_artifact: ${{ needs.get_info.outputs.upload_artifact }}
+    secrets: inherit
