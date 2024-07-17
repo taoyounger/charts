@@ -24,9 +24,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'sha or Tag for code'
+        description: 'sha, branch or tag for code'
         required: true
-        default: network-tools-v1.0.0
+        default: main
       imageTag:
         description: 'image tag'
         required: true
