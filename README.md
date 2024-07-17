@@ -19,3 +19,10 @@ release chart and images
 git tag rdma-tools-vXX.YY.ZZ 
 git push --tags
 ```
+
+## helm chart
+
+```shell
+helm repo add spidernet https://spidernet-io.github.io/charts
+helm repo update
+```
