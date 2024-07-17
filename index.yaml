@@ -3,9 +3,9 @@ entries:
   ofed-driver:
   - apiVersion: v2
     appVersion: 24.04-0.6.6.0-0
-    created: "2024-07-17T08:57:49.407456535Z"
+    created: "2024-07-17T10:08:44.426776794Z"
     description: ofed driver
-    digest: 59b490843305db0b746e5fb569567411bea72aa6d9519e950c1e34b6eb18fb47
+    digest: eee89258ae470cb121249dffcfa7d839c3ca546b4a25dd002e80f5607cb8f677
     home: https://spidernet-io.github.io/charts
     keywords:
     - ofed
@@ -19,4 +19,4 @@ entries:
     urls:
     - https://spidernet-io.github.io/charts/charts/ofed-driver-24.04-0.6.6.0-0.tgz
     version: 24.04-0.6.6.0-0
-generated: "2024-07-17T08:57:49.406968501Z"
+generated: "2024-07-17T10:08:44.426339659Z"
