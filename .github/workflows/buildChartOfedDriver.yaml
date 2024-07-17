@@ -69,7 +69,7 @@ jobs:
       - name: Package Chart
         continue-on-error: false
         run: |
-          helm package ${{ env.ofed-driver/chart }}
+          helm package ${{ env.CHART_PATH }}
           if ! ls *.tgz &>/dev/null ; then
             echo "failed to generate chart"
             exit 1
