@@ -76,6 +76,7 @@ jobs:
             echo "call by PR"
             echo "use sha ${{ github.event.pull_request.head.sha }} , by pr"
             echo "code_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+            echo "image_tag=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
             echo "push_image=false" >> $GITHUB_ENV
           fi
 
