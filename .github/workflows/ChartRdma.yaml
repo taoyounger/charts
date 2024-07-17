@@ -1,0 +1,48 @@
+name: Chart Rdma Tools
+
+env:
+  CHART_PATH: rdma-tools/chart
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'tag, sha, branch'
+        required: true
+        default: main
+  push:
+    tags:
+      - rdma-tools-v[0-9]+.[0-9]+.[0-9]+
+
+permissions: write-all
+
+jobs:
+  get_info:
+    runs-on: ubuntu-latest
+    outputs:
+      chart_path: ${{ env.chart_path }}
+      code_sha: ${{ env.code_sha }}
+    steps:
+      - name: Get information
+        id: get_original_ref
+        run: |
+          echo '${{ toJSON(github) }}'
+          if ${{ github.event_name == 'workflow_dispatch' }}; then
+            echo "call by workflow_dispatch"
+            echo "code_sha=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
+            echo "chart_path=${{ env.CHART_PATH }}" >> $GITHUB_ENV
+          elif ${{ github.event_name == 'push' }} ; then
+            echo "call by push tag"
+            echo "code_sha=${GITHUB_REF##*/}" >> $GITHUB_ENV
+            echo "chart_path=${{ env.CHART_PATH }}" >> $GITHUB_ENV
+          else
+            exit 1
+          fi
+
+  call-workflow:
+    needs: [get_info]
+    uses: ./.github/workflows/callBuildChart.yaml
+    with:
+      code_sha: ${{ needs.get_info.outputs.code_sha }}
+      chart_path: ${{ needs.get_info.outputs.chart_path }}
+    secrets: inherit
