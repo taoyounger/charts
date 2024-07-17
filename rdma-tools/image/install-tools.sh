@@ -41,9 +41,11 @@ apt-get install -y --no-install-recommends "${packages[@]}"
 # cuda
 wget --no-check-certificate https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
 dpkg -i cuda-keyring_1.1-1_all.deb
+apt-get install -y apt-utils
 apt-get install -y ca-certificates
 apt-get update
 # nvidia-smi
+apt-get install -y nvidia-smi
 apt-get install -y nvidia-utils-555
 
 apt-get purge --auto-remove
