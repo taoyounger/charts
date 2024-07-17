@@ -1,0 +1,85 @@
+name: Image Rdma Tools
+
+env:
+  IMAGE_NAME: rdma-tools
+  DOCKERFILE_PATH: rdma-tools/image
+
+on:
+  push:
+    tags:
+      - rdma-tools-v[0-9]+.[0-9]+.[0-9]+
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      # can not use env here
+      - network-tools/image/**
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'sha, branch or tag for code'
+        required: true
+        default: main
+      imageTag:
+        description: 'image tag'
+        required: true
+        default: v1.0.0
+
+permissions: write-all
+
+jobs:
+  get_info:
+    timeout-minutes: 30
+    outputs:
+      code_sha: ${{ env.code_sha }}
+      image_tag: ${{ env.image_tag }}
+      push_image: ${{ env.push_image }}
+      build_platform: ${{ env.build_platform }}
+      upload_artifact: ${{ env.upload_artifact }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code Version Before Checkout
+        id: get_event_version
+        continue-on-error: false
+        run: |
+          echo '${{ toJSON(github) }}'
+          if ${{ github.event_name == 'workflow_dispatch' }}; then
+            echo "call by workflow_dispatch"
+            echo "code_sha=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
+            echo "image_tag=${{ github.event.inputs.imageTag }}" >> $GITHUB_ENV
+            echo "push_image=true" >> $GITHUB_ENV
+            echo "build_platform=linux/amd64,linux/arm64" >> $GITHUB_ENV
+            echo "upload_artifact=false" >> $GITHUB_ENV
+          elif ${{ github.event_name == 'push' }} ; then
+            echo "call by push tag"
+            image_tag=${GITHUB_REF##*/}
+            image_tag=$( grep -o -E "v[0-9]+.[0-9]+.[0-9]+" <<< "${image_tag}" )
+            echo "code_sha=${GITHUB_REF##*/}" >> $GITHUB_ENV
+            echo "image_tag=${image_tag}" >> $GITHUB_ENV
+            echo "push_image=true" >> $GITHUB_ENV
+            echo "build_platform=linux/amd64,linux/arm64" >> $GITHUB_ENV
+            echo "upload_artifact=false" >> $GITHUB_ENV
+          else
+            echo "call by PR"
+            echo "use sha ${{ github.event.pull_request.head.sha }} , by pr"
+            echo "code_sha=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+            echo "image_tag=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+            echo "push_image=false" >> $GITHUB_ENV
+            echo "build_platform=linux/amd64" >> $GITHUB_ENV
+            echo "upload_artifact=false" >> $GITHUB_ENV
+          fi
+
+  call-workflow:
+    uses: ./.github/workflows/callBuildImage.yaml
+    needs: [get_info]
+    secrets: inherit
+    with:
+      code_sha: ${{ needs.get_info.outputs.code_sha }}
+      image_tag: ${{ needs.get_info.outputs.image_tag }}
+      push_image: ${{ needs.get_info.outputs.push_image }}
+      image_name: ${{ env.IMAGE_NAME }}
+      dockerfile_dirctory: ${{ env.DOCKERFILE_PATH }}
+      build_platform: ${{ needs.get_info.outputs.build_platform }}
+      upload_artifact: ${{ needs.get_info.outputs.upload_artifact }}

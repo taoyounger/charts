@@ -1,0 +1,168 @@
+name: Call Build Image
+
+env:
+  IMAGE_REPO: ${{ github.repository }}
+  ONLINE_REGISTER: ghcr.io
+  ONLINE_REGISTER_USER: ${{ github.actor }}
+  ONLINE_REGISTER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+on:
+  workflow_call:
+    inputs:
+      code_sha:
+        required: true
+        type: string
+      image_tag:
+        required: true
+        type: string
+      push_image:
+        required: true
+        type: boolean
+      image_name:
+        required: true
+        type: string
+      dockerfile_dirctory:
+        required: true
+        type: string
+      build_platform:
+        required: true
+        type: string
+      upload_artifact:
+        required: true
+        type: boolean
+    outputs:
+      imageTag:
+        description: "tag of image ci"
+        value: ${{ jobs.build-and-push.outputs.upload_image_artifact_name }}
+
+permissions: write-all
+
+jobs:
+  build-and-push:
+    timeout-minutes: 30
+    environment: release-base-images
+    runs-on: ubuntu-latest
+    outputs:
+      upload_image_artifact_name: ${{ env.upload_image_artifact_name }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+
+      - name: Inspect builder
+        run: |
+          echo "Name:      ${{ steps.buildx.outputs.name }}"
+          echo "Endpoint:  ${{ steps.buildx.outputs.endpoint }}"
+          echo "Status:    ${{ steps.buildx.outputs.status }}"
+          echo "Flags:     ${{ steps.buildx.outputs.flags }}"
+          echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v3.0.0
+
+      - name: Get Code Version Before Checkout
+        id: get_event_version
+        continue-on-error: false
+        run: |
+          echo '${{ toJSON(github) }}'
+          if ${{ inputs.ref != '' }}; then
+              echo "call by workflow_call"
+              echo "code_sha=${{ inputs.code_sha }}" >> $GITHUB_ENV
+              echo "image_tag=${{ inputs.image_tag }}" >> $GITHUB_ENV
+              echo "push_image=${{ inputs.push_image }}" >> $GITHUB_ENV
+              echo "image_name=${{ inputs.image_name }}" >> $GITHUB_ENV
+              echo "dockerfile_dirctory=${{ inputs.dockerfile_dirctory }}" >> $GITHUB_ENV
+              echo "build_platform=${{ inputs.build_platform }}" >> $GITHUB_ENV
+              echo "upload_artifact=${{ inputs.upload_artifact }}" >> $GITHUB_ENV
+              echo "upload_image_artifact_name=image-${{ inputs.code_sha }}" >> $GITHUB_ENV
+          else
+              echo "unexpected event: ${{ github.event_name }}"
+              exit 1
+          fi
+
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          # fetch-depth: 0
+          ref: ${{ env.code_sha }}
+
+      - name: Getting Build Arg
+        id: arg
+        run: |
+          GIT_COMMIT_VERSION=$( git show -s --format='format:%H')
+          GIT_COMMIT_TIME=$( git show -s --format='format:%aI')
+          echo "commitver=${GIT_COMMIT_VERSION}" >> $GITHUB_ENV
+          echo "committime=${GIT_COMMIT_TIME}" >> $GITHUB_ENV
+
+      - name: Login to online register
+        uses: docker/login-action@v3.2.0
+        with:
+          username: ${{ env.ONLINE_REGISTER_USER }}
+          password: ${{ env.ONLINE_REGISTER_PASSWORD }}
+          registry: ${{ env.ONLINE_REGISTER }}
+
+      - name: Release build ${{ env.image_name }}
+        uses: docker/build-push-action@v5.4.0
+        continue-on-error: false
+        id: docker_build_release
+        with:
+          context: ./${{ env.dockerfile_dirctory }}
+          file: ./${{ env.dockerfile_dirctory }}/Dockerfile
+          push: ${{ env.push_image }}
+          provenance: false
+          github-token: ${{ secrets.WELAN_PAT }}
+          platforms: ${{ env.build_platform }}
+          outputs: type=tar,dest=/tmp/${{ env.upload_image_artifact_name }}.tar
+          tags: |
+            ${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ env.image_name }}:${{ env.image_tag }}
+          build-args: |
+            GIT_COMMIT_VERSION=${{ env.commitver }}
+            GIT_COMMIT_TIME=${{ env.committime }}
+            VERSION=${{ env.code_sha }}
+
+      # Upload artifact race images tar
+      - name: Upload image tar
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: ${{ env.upload_image_artifact_name }}
+          path: /tmp/${{ env.upload_image_artifact_name }}.tar
+          retention-days: 1
+
+      - name: Image Release Digest
+        shell: bash
+        run: |
+          mkdir -p image-digest/
+          echo "## ${{ env.image_name }}" > image-digest/${{ env.image_name }}.txt
+          echo "" >> image-digest/${{ env.image_name }}.txt
+          echo "\`${{ env.ONLINE_REGISTER }}/${{ env.IMAGE_REPO }}/${{ env.image_name }}:${{ env.image_tag }}@${{ steps.docker_build_release.outputs.digest }}\`" >> image-digest/${{ env.image_name }}.txt
+          echo "" >> image-digest/${{ env.image_name }}.txt
+
+      - name: Upload artifact digests
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: image-digest-${{ env.image_name }}
+          path: image-digest
+          retention-days: 1
+
+  image-digests:
+    name: Display Digests
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Downloading Image Digests
+        shell: bash
+        run: |
+          mkdir -p image-digest/
+
+      - name: Download digests of all images built
+        uses: actions/download-artifact@v3
+        with:
+          path: image-digest/
+          name: image-digest-${{ env.image_name }}
+
+      - name: Image Digests Output
+        shell: bash
+        run: |
+          cd image-digest/
+          find -type f | sort | xargs -d '\n' cat
