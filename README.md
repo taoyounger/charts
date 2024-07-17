@@ -1,6 +1,15 @@
 # charts
 
-## ofed-driver
+## helm chart
+
+```shell
+helm repo add spiderchart https://spidernet-io.github.io/charts
+helm repo update
+```
+
+## charts
+
+### ofed-driver
 
 chart for deploying OFED driver to install the driver of Mellanox network card
 
@@ -10,7 +19,9 @@ git tag ofe-driver-vXX.YY.ZZ
 git push --tags
 ```
 
-## rdma-tools
+refer to [document](./ofed-driver/Readme.md) for usage
+ 
+### rdma-tools
 
 images including kinds of RDMA tools for debugging
 
@@ -20,9 +31,5 @@ git tag rdma-tools-vXX.YY.ZZ
 git push --tags
 ```
 
-## helm chart
+refer to [document](./rdma-tools/Readme.md) for usage
 
-```shell
-helm repo add spidernet https://spidernet-io.github.io/charts
-helm repo update
-```
