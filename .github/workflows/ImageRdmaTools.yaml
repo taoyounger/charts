@@ -31,6 +31,7 @@ permissions: write-all
 
 jobs:
   get_info:
+    runs-on: ubuntu-latest
     outputs:
       code_sha: ${{ env.code_sha }}
       image_tag: ${{ env.image_tag }}
@@ -39,11 +40,8 @@ jobs:
       build_platform: ${{ env.build_platform }}
       upload_artifact: ${{ env.upload_artifact }}
       dockerfile_dirctory: ${{ env.dockerfile_dirctory }}
-    runs-on: ubuntu-latest
     steps:
-      - name: Get Code Version Before Checkout
-        id: get_event_version
-        continue-on-error: false
+      - name: get information
         run: |
           echo '${{ toJSON(github) }}'
           if ${{ github.event_name == 'workflow_dispatch' }}; then
@@ -79,7 +77,6 @@ jobs:
           fi
 
   call-workflow:
-    timeout-minutes: 30
     needs: [get_info]
     uses: ./.github/workflows/callBuildImage.yaml
     with:
