@@ -7,15 +7,20 @@ refer to [nvidia available image tag](https://catalog.ngc.nvidia.com/orgs/nvidia
 
 the image tag is with a format `{driverVersion}-${OSName}${OSVer}-${Arch}`
 
-deploy command:
+
+## deploy
+
 ```shell
-helm install ./charts ofed-driver -n kube-system \
+helm repo add spiderchart https://spidernet-io.github.io/charts
+helm repo update
+helm install spiderchart/ofed-driver  ofed-driver -n kube-system \
     --set image.OSName="ubuntu" \
     --set image.OSVer="22.04" \
     --set image.Arch="amd64"
 ```
 
-release chart
+## release 
+
 ```shell
 git tag ofe-driver-vXX.YY.ZZ 
 git push --tags
