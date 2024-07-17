@@ -19,7 +19,6 @@ which smc_run &>/dev/null
 which lspci &>/dev/null
 which lshw &>/dev/null
 which rdma &>/dev/null
-which nvidia-smi &>/dev/null
 which ibdiagnet &>/dev/null
 which ibnetdiscover &>/dev/null
 which ibhosts &>/dev/null
@@ -27,6 +26,7 @@ which ibping &>/dev/null
 which iperf3 &>/dev/null
 
 
+#which nvidia-smi &>/dev/null
 
 
 exit 0
