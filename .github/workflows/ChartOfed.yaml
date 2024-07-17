@@ -41,7 +41,7 @@ jobs:
 
   call-workflow:
     needs: [get_info]
-    uses: ./.github/workflows/callBuildImage.yaml
+    uses: ./.github/workflows/callBuildChart.yaml
     with:
       code_sha: ${{ needs.get_info.outputs.code_sha }}
       chart_path: ${{ needs.get_info.outputs.chart_path }}
