@@ -17,6 +17,8 @@ for example:
 ```shell
 helm repo add spiderchart https://spidernet-io.github.io/charts
 helm repo update
+helm search repo ofed-driver
+
 helm install spiderchart/ofed-driver  ofed-driver -n kube-system \
     --set image.OSName="ubuntu" \
     --set image.OSVer="22.04" \
