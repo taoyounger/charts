@@ -16,6 +16,11 @@ helm search repo rdma-tools
 
 # run daemonset on worker1 and worker2 
 cat <<EOF > values.yaml
+# for china user , it could add these to use a domestic registry
+#image:
+#  registry: ghcr.m.daocloud.io
+ 
+# just run daemonset in nodes 'worker1' and 'worker2'
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -45,6 +50,7 @@ resources:
 #    add: [ "IPC_LOCK" ]
 EOF
 
-helm install spiderchart/rdma-tools  rdma-tools -f ./values.yaml
+# for China user, add `--set image.registry=ghcr.m.daocloud.io`
+helm install rdma-tools spiderchart/rdma-tools -f ./values.yaml
 
 ```
