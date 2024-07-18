@@ -54,7 +54,8 @@ resources:
     memory: 150Mi
 
 startupProbe:
-  initialDelaySeconds: 10
+  # it maybe take long time the build the driver
+  initialDelaySeconds: 20
   periodSeconds: 20
 
 livenessProbe:
