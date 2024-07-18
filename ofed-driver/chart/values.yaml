@@ -14,6 +14,14 @@ image:
 tolerations:
   - operator: Exists
 
+config:
+  # unload host storage modules prior to loading mofed modules
+  unload_host_storage_modules: false
+  # enable loading of nfs relates storage modules from mofed container
+  enable_nfsrdma: false
+  # restore host drivers when container is gracefully stopped
+  restore_hostdriver_on_termination: true
+
 extraEnv: []
 
 extraVolumes: []
@@ -23,6 +31,14 @@ extraVolumes: []
 extraVolumeMounts: []
 # - name: test-val
 #   mountPath: /tmp
+
+resources:
+  #limits:
+  #  cpu: 1000m
+  #  memory: 900Mi
+  #requests:
+  #  cpu: 100m
+  #  memory: 500Mi
 
 nodeSelector:
   kubernetes.io/os: linux

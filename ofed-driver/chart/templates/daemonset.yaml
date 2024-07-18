@@ -59,16 +59,24 @@ spec:
         - image: {{ include "driver.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           name: mofed-container
+          {{- with .Values.resources }}
+          resources:
+          {{- toYaml . | trim | nindent 12 }}
+          {{- end }}
           securityContext:
             privileged: true
             seLinuxOptions:
               level: "s0"
-          {{- if .Values.extraEnv }}
           env:
+            - name: UNLOAD_STORAGE_MODULES
+              value: {{ .Values.config.unload_host_storage_modules }}
+            - name: ENABLE_NFSRDMA
+              value: {{ .Values.config.enable_nfsrdma }}
+            - name: RESTORE_DRIVER_ON_POD_TERMINATION
+              value: {{ .Values.config.restore_hostdriver_on_termination }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- end }}
           volumeMounts:
             - name: run-mlnx-ofed
               mountPath: /run/mellanox/drivers
