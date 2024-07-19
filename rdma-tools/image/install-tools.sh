@@ -55,7 +55,7 @@ apt-get install -y --no-install-recommends "${packages[@]}"
 # https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
 wget  --no-check-certificate \
   https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/nvidia-utils-555_555.42.06-0ubuntu1_amd64.deb
-dpkg -i nvidia-utils-555_555.42.06-0ubuntu1_amd64.deb
+apt-get install -y ./nvidia-utils-555_555.42.06-0ubuntu1_amd64.deb
 
 
 apt-get purge --auto-remove
