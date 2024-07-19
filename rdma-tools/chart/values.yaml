@@ -25,10 +25,10 @@ resources:
 
 extraAnnotations:
   #v1.multus-cni.io/default-network: spiderpool/calico
-  #k8s.v1.cni.cncf.io/networks: |
-  #  '[{"name":"gpu1-sriov","namespace":"spiderpool"},
+  #k8s.v1.cni.cncf.io/networks: |-
+  #   [{"name":"gpu1-sriov","namespace":"spiderpool"},
   #    {"name":"gpu2-sriov","namespace":"spiderpool"},
-  #    {"name":"gpu8-sriov","namespace":"spiderpool"}]'
+  #    {"name":"gpu8-sriov","namespace":"spiderpool"}]
 
 securityContext:
   #capabilities:
