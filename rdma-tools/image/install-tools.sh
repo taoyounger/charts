@@ -42,10 +42,10 @@ apt-get install -y --no-install-recommends "${packages[@]}"
 
 
 # cuda
-#apt install -y ca-certificates
-#wget --no-check-certificate https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
-#dpkg -i cuda-keyring_1.1-1_all.deb
-#apt-get update
+apt install -y ca-certificates
+wget --no-check-certificate https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb
+dpkg -i cuda-keyring_1.1-1_all.deb
+apt-get update
 
 # for nvidia-smi
 ## apt-get -y install cuda-toolkit-12-5
