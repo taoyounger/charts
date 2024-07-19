@@ -24,6 +24,12 @@ on:
         description: 'sha, branch or tag for code'
         required: true
         default: main
+      baseImageCudaVersion:
+        description: 'cuda verison for base image'
+        required: false
+      baseImageOSVersion:
+        description: 'os verison for base image'
+        required: false
 
 permissions: write-all
 
@@ -37,6 +43,8 @@ jobs:
       build_platform: ${{ env.build_platform }}
       upload_artifact: ${{ env.upload_artifact }}
       dockerfile_dirctory: ${{ env.dockerfile_dirctory }}
+      baseImageFullName: ${{ env.baseImageFullName }}
+      image_tag: ${{ env.image_tag }}
     steps:
       - name: get information
         run: |
@@ -68,6 +76,40 @@ jobs:
             echo "upload_artifact=false" >> $GITHUB_ENV
           fi
 
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ env.code_sha }}
+
+      - name: Getting Build Arg
+        id: arg
+        run: |
+          set -x
+          echo "get base image"
+          if [ -n "${{ github.event.inputs.baseImageCudaVersion }}" ] ; then
+              baseImageCudaVersion=${{ github.event.inputs.baseImageCudaVersion }}
+          fi
+          if [ -n "${{ github.event.inputs.baseImageOSVersion }}" ] ; then
+              baseImageOSVersion=${{ github.event.inputs.baseImageOSVersion }}
+          fi
+          if [ -n "${baseImageCudaVersion}" ] && [ -n "${baseImageOSVersion}" ] ; then
+              export BASEIMAGE_CUDA_VERISON=${baseImageCudaVersion}
+              export BASEIMAGE_OS_VERISON=${baseImageOSVersion}
+          fi
+          chmod +x ${{ env.DOCKERFILE_PATH }}/version.sh
+          source ${{ env.DOCKERFILE_PATH }}/version.sh
+          echo "baseImageFullName=${BASEIMAGE_FULL_NAME}" >> $GITHUB_ENV
+          echo "get image tag"
+          image_tag=${{ inputs.image_tag }}
+          if [ -n "${image_tag}" ]; then
+             echo "image_tag=${BASEIMAGE_CUDA_VERISON}-${{ inputs.image_tag }}" >> $GITHUB_ENV
+          else
+             image_tag=$( git ls-tree --full-tree HEAD -- ${{ env.DOCKERFILE_PATH }} | awk '{ print $3 }' )
+             [ -n "${image_tag}" ] || { echo "error, failed to get image_tag from commit id"; exit 1 ; }
+             echo "image_tag=${BASEIMAGE_CUDA_VERISON}-${image_tag}" >> $GITHUB_ENV
+          fi
+
   call-workflow:
     needs: [get_info]
     uses: ./.github/workflows/callBuildImage.yaml
@@ -78,5 +120,6 @@ jobs:
       dockerfile_dirctory: ${{ needs.get_info.outputs.dockerfile_dirctory }}
       build_platform: ${{ needs.get_info.outputs.build_platform }}
       upload_artifact: ${{ needs.get_info.outputs.upload_artifact }}
-      # leave image_tag empty , use commit id for tag
+      baseImageFullName: ${{ needs.get_info.outputs.baseImageFullName }}
+      image_tag: ${{ needs.get_info.outputs.image_tag }}
     secrets: inherit
