@@ -128,6 +128,7 @@ jobs:
 
       # Upload artifact race images tar
       - name: Upload image tar
+        if: ${{ env.upload_artifact == 'true' }}
         uses: actions/upload-artifact@v3.1.3
         with:
           name: ${{ env.upload_image_artifact_name }}
