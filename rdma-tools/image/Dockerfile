@@ -1,7 +1,7 @@
 # Copyright 2024 Authors of spidernet-io
 # SPDX-License-Identifier: Apache-2.0
 
-ARG UBUNTU_IMAGE=docker.io/library/ubuntu:22.04
+ARG UBUNTU_IMAGE=docker.m.daocloud.io/nvidia/cuda:12.5.1-runtime-ubuntu22.04
 
 #========== root image ==============
 FROM ${UBUNTU_IMAGE} as rootfs

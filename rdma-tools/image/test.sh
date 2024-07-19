@@ -27,7 +27,4 @@ which iperf3 &>/dev/null
 which ping &>/dev/null
 
 
-which nvidia-smi &>/dev/null
-
-
 exit 0
