@@ -3,7 +3,7 @@ name: rdma-test
 image:
   registry: ghcr.io
   repository: spidernet-io/rdma-tools
-  tag: ""
+  tag: "6b6e9e33e55176ddd46d6cc19e0d8776eb3d5336"
 
   pullPolicy: IfNotPresent
   imagePullSecrets: []
