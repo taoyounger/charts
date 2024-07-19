@@ -15,7 +15,7 @@ on:
       - reopened
     paths:
       # can not use env here
-      - network-tools/image/**
+      - rdma-tools/image/**
   workflow_dispatch:
     inputs:
       ref:

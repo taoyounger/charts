@@ -10,7 +10,7 @@ on:
       - 'main'
     paths:
       # can not use env here
-      - network-tools/image/**
+      - rdma-tools/image/**
 
 permissions: write-all
 
