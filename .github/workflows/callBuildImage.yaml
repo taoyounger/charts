@@ -32,8 +32,8 @@ on:
         required: true
         type: string
     outputs:
-      imageTag:
-        description: "tag of image ci"
+      imageArtifactName:
+        description: "image Artifact Name"
         value: ${{ jobs.build-and-push.outputs.upload_image_artifact_name }}
 
 permissions: write-all
@@ -70,12 +70,11 @@ jobs:
           echo "dockerfile_dirctory=${{ inputs.dockerfile_dirctory }}" >> $GITHUB_ENV
           echo "build_platform=${{ inputs.build_platform }}" >> $GITHUB_ENV
           echo "upload_artifact=${{ inputs.upload_artifact }}" >> $GITHUB_ENV
-          echo "upload_image_artifact_name=image-${{ inputs.code_sha }}" >> $GITHUB_ENV
+          echo "upload_image_artifact_name=image-$( date +%Y%m%d%H%M%S%N )" >> $GITHUB_ENV
           # spidernet-io/charts -> spidernet-io
           org_name=$( awk -F'/' '{print $1}'  <<< "${{ env.IMAGE_REPO }}" )
           # ghcr.io/spidernet-io/rdma-tools
           echo "image_full_name=${{ env.ONLINE_REGISTER }}/${org_name}/${{ inputs.image_name }}" >> $GITHUB_ENV
-
 
       - name: Checkout Source Code
         uses: actions/checkout@v4

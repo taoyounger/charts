@@ -8,13 +8,14 @@ on:
   push:
     branches:
       - 'main'
+    paths:
+      - rdma-tools/image/**
   pull_request_target:
     types:
       - opened
       - synchronize
       - reopened
     paths:
-      # can not use env here
       - rdma-tools/image/**
   workflow_dispatch:
     inputs:
