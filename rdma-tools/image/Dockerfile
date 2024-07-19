@@ -41,4 +41,4 @@ ARG VERSION
 ENV VERSION=${VERSION}
 
 COPY --from=rootfs / /
-CMD ["/usr/bin/sleep infinity"]
+CMD ["/usr/bin/sleep","infinity"]

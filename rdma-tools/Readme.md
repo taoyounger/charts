@@ -35,15 +35,16 @@ affinity:
 # sriov interfaces
 extraAnnotations:
   v1.multus-cni.io/default-network: spiderpool/calico
-  k8s.v1.cni.cncf.io/networks: |
-    '[{"name":"gpu1-sriov","namespace":"spiderpool"},
-      {"name":"gpu2-sriov","namespace":"spiderpool"}]'
+  k8s.v1.cni.cncf.io/networks: |-
+      [{"name":"gpu1-sriov","namespace":"spiderpool"},
+       {"name":"gpu2-sriov","namespace":"spiderpool"}]
 
 # sriov resource
 resources:
   limits:
     spidernet.io/gpu1sriov: 1
     spidernet.io/gpu2sriov: 1
+    # nvidia.com/gpu: 1
 
 #securityContext:
 #  capabilities:
