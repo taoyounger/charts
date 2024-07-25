@@ -69,11 +69,11 @@ spec:
               level: "s0"
           env:
             - name: UNLOAD_STORAGE_MODULES
-              value: {{ .Values.config.unload_host_storage_modules }}
+              value: {{ .Values.config.unload_host_storage_modules | quote }}
             - name: ENABLE_NFSRDMA
-              value: {{ .Values.config.enable_nfsrdma }}
+              value: {{ .Values.config.enable_nfsrdma | quote }}
             - name: RESTORE_DRIVER_ON_POD_TERMINATION
-              value: {{ .Values.config.restore_hostdriver_on_termination }}
+              value: {{ .Values.config.restore_hostdriver_on_termination | quote }}
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
