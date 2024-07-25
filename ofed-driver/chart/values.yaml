@@ -32,14 +32,6 @@ extraVolumeMounts: []
 # - name: test-val
 #   mountPath: /tmp
 
-resources:
-  #limits:
-  #  cpu: 1000m
-  #  memory: 900Mi
-  #requests:
-  #  cpu: 100m
-  #  memory: 500Mi
-
 nodeSelector:
   kubernetes.io/os: linux
 
