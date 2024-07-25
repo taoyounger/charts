@@ -19,6 +19,9 @@ affinity: {}
 resources:
   #limits:
   #  spidernet.io/gpu1sriov: 1
+  limits:
+    cpu: 200m
+    memory: 150Mi
   requests:
     cpu: 200m
     memory: 150Mi
