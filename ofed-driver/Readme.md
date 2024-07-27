@@ -7,6 +7,10 @@ the pod builds the OFED driver from the source and install some online package. 
 
 ## release chart
 
+the chart version is composed of '{x of driverImage }-{y of driverImage }-{custom}'
+
+for example of `24.04.0`, `24.04` is the default OFED image verison
+
 tag the code and the CI will automatically release a chart
 
 ```shell
