@@ -2,7 +2,15 @@
 
 images including kinds of RDMA tools for debugging
 
-## release chart
+## image tag
+
+{cuda version of baseImage}-{commit hash of directory}
+
+## chart tag and release chart
+
+the version of chart is '{x of cudaVersion}-{y of cudaVersion}-{custom}'.
+
+For example of chart version 'v12.5.0', '12.5' represents cuda '12.5.x' in the base image, the last '.0' represents any changes of the chart
 
 tag the code and the CI will automatically release a chart
 
