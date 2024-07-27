@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'tag, sha, branch'
+        description: 'compile the chart based on the sha or branch of code'
         required: true
         default: main
   push:

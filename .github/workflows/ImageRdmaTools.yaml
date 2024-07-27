@@ -21,14 +21,14 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'sha, branch or tag for code'
+        description: 'compile the image based on the sha or branch of code'
         required: true
         default: main
       baseImageCudaVersion:
-        description: 'cuda verison for base image'
+        description: 'cuda verison for base image. refer to https://hub.docker.com/r/nvidia/cuda'
         required: false
       baseImageOSVersion:
-        description: 'os verison for base image'
+        description: 'os verison for base image. refer to https://hub.docker.com/r/nvidia/cuda'
         required: false
 
 permissions: write-all
