@@ -33,6 +33,7 @@ spec:
       hostNetwork: false
       dnsPolicy: ClusterFirst
       {{- end }}
+      serviceAccountName: {{ .Values.name | trunc 63 | trimSuffix "-" }}
       restartPolicy: Always
       {{- with .Values.tolerations }}
       tolerations:
@@ -50,6 +51,16 @@ spec:
         - name: {{ .Values.name | trunc 63 | trimSuffix "-" }}
           image: {{ include "project.image" . | quote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.command }}
+          command:
+          {{- with .Values.command }}
+          {{- toYaml . | nindent 10  }}
+          {{- end }}
+          {{- end }}
+          ports:
+            - name: ssh
+              containerPort: 22
+              protocol: TCP
           {{- with .Values.resources }}
           resources:
           {{- toYaml . | trim | nindent 12 }}
@@ -57,7 +68,7 @@ spec:
           {{- if .Values.securityContext }}
           securityContext:
           {{- with .Values.securityContext }}
-          {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 12 }}
           {{- end }}
           {{- end }}
           env:
@@ -73,6 +84,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: ENV_SERVICE_NAME
+              value: {{ .Values.name | trunc 63 | trimSuffix "-" }}
             - name: ENV_POD_NAMESPACE
               valueFrom:
                 fieldRef:
@@ -80,15 +93,16 @@ spec:
             {{- with .Values.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
-          {{- if .Values.extraVolumes }}
           volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
             {{- if .Values.extraVolumes }}
-            {{- include "tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 12 }}
+            {{- include "tplvalues.render" ( dict "value" .Values.extraVolumes "context" $ ) | nindent 12 }}
             {{- end }}
-          {{- end }}
-      {{- if .Values.extraVolumes }}
       volumes:
+        - emptyDir:
+            medium: Memory
+          name: dshm
       {{- if .Values.extraVolumeMounts }}
       {{- include "tplvalues.render" ( dict "value" .Values.extraVolumeMounts "context" $ ) | nindent 6 }}
-      {{- end }}
       {{- end }}

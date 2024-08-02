@@ -30,8 +30,8 @@ on:
       upload_artifact:
         required: true
         type: string
-      baseImageFullName:
-        required: true
+      generateDockerfileScript:
+        required: false
         type: string
     outputs:
       imageArtifactName:
@@ -48,6 +48,23 @@ jobs:
     outputs:
       upload_image_artifact_name: ${{ env.upload_image_artifact_name }}
     steps:
+      - name: Free Disk Space (Ubuntu)
+        # https://github.com/spidernet-io/spiderpool/issues/3277
+        # https://github.com/actions/virtual-environments/issues/709
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # this might remove tools that are actually needed,
+          # if set to "true" but frees about 6 GB
+          tool-cache: true
+          # all of these default to true, but feel free to set to
+          # "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.3.0
 
@@ -72,7 +89,6 @@ jobs:
           echo "dockerfile_dirctory=${{ inputs.dockerfile_dirctory }}" >> $GITHUB_ENV
           echo "build_platform=${{ inputs.build_platform }}" >> $GITHUB_ENV
           echo "upload_artifact=${{ inputs.upload_artifact }}" >> $GITHUB_ENV
-          echo "baseImageFullName=${{ inputs.baseImageFullName }}" >> $GITHUB_ENV
           echo "upload_image_artifact_name=image-$( date +%Y%m%d%H%M%S%N )" >> $GITHUB_ENV
           # spidernet-io/charts -> spidernet-io
           org_name=$( awk -F'/' '{print $1}'  <<< "${{ env.IMAGE_REPO }}" )
@@ -87,7 +103,6 @@ jobs:
           ref: ${{ env.code_sha }}
 
       - name: Getting Build Arg
-        id: arg
         run: |
           GIT_COMMIT_VERSION=$( git show -s --format='format:%H')
           GIT_COMMIT_TIME=$( git show -s --format='format:%aI')
@@ -101,6 +116,15 @@ jobs:
              image_tag=$( git ls-tree --full-tree HEAD -- ${dockerfile_dirctory} | awk '{ print $3 }' )
              [ -n "${image_tag}" ] || { echo "error, failed to get image_tag from commit id"; exit 1 ; }
              echo "image_tag=${image_tag}" >> $GITHUB_ENV
+          fi
+          GENERATE_SCRIPT_PATH=${{ inputs.generateDockerfileScript }}
+          if [ -n "${GENERATE_SCRIPT_PATH}" ]; then
+              [ -f "${GENERATE_SCRIPT_PATH}" ] || { echo "error, failed to find generateDockerfileScript: ${GENERATE_SCRIPT_PATH}"; exit 1 ; }
+              DIR_PATH=$( dirname ${GENERATE_SCRIPT_PATH} )
+              SCRIPT_NAME=$( basename ${GENERATE_SCRIPT_PATH} )
+              cd ${DIR_PATH}
+              chmod +x ${SCRIPT_NAME}
+              ./${SCRIPT_NAME}              
           fi
 
       - name: Login to online register
@@ -128,7 +152,6 @@ jobs:
             GIT_COMMIT_VERSION=${{ env.commitver }}
             GIT_COMMIT_TIME=${{ env.committime }}
             VERSION=${{ env.code_sha }}
-            BASE_IMAGE=${{ env.baseImageFullName }}
 
       # Upload artifact race images tar
       - name: Upload image tar
