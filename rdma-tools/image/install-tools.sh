@@ -104,7 +104,7 @@ packages=(
   libgomp1
   kmod
   tcpdump
-  arping
+  iputils-arping
   ethtool
   iptables
   #--------------
