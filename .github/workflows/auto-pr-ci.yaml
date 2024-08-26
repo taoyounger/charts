@@ -1,0 +1,125 @@
+name: PR E2E C
+
+on:
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+  check_change:
+    runs-on: ubuntu-latest
+    outputs:
+      project: ${{ env.test_project }}
+      changed_project: ${{ env.changed_project }}
+    steps:
+      - name: "Setup go"
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.22'
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          
+      - name: check change
+        id: check_change
+        run: |
+          set -x
+          # Using the Github API to detect the files changed as git merge-base stops working when the branch is behind
+          # and jitterbit/get-changed-files does not support pull_request_target
+          URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
+          files_changed_data=$(curl -s --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' -X GET -G "$URL")
+          echo "files_changed_data: $files_changed_data"
+          files_changed="$(echo $files_changed_data | jq -r '.[] | .filename')"
+          echo "files_changed: $files_changed"
+          #--------------------
+          # Adding || true to avoid "Process exited with code 1" errors
+          charts_changed="$(echo "$files_changed" | xargs dirname | grep -o "./[^/]*" | sort | uniq | awk -F'/' '{print $2}' | tr '\n' ' ' || true)"
+          echo "charts_changed: $charts_changed"
+          #--------------------
+          # issue: just release one project
+          PRO_CHANGED_VERSION=""
+          for PRO in ${charts_changed} ; do
+            if [ -d "charts/${PRO}" ] ; then
+               if grep  "${PRO}/chart/Chart.yaml" <<< "${files_changed}" &>/dev/null ; then
+                  PRO_CHANGED_VERSION="${PRO}"
+                  break
+               fi
+            fi
+          done
+          echo "PRO_CHANGED_VERSION=${PRO_CHANGED_VERSION}"
+          echo "PRO_CHANGED_VERSION=${PRO_CHANGED_VERSION}" >> $GITHUB_ENV
+          #-------------------
+          # for project test script
+          additionall_test_project=""
+          project_test_dir_changed="$(echo "$files_changed" | xargs dirname |  grep -o "test/[^/]*" | sort | uniq  | awk -F'/' '{print $2}'  || true)"
+          for PRO in ${project_test_dir_changed} ; do
+              if ! grep " ${PRO} " <<< " ${charts_changed} " &>/dev/null ; then
+                  additionall_test_project+=" $PRO "
+                  echo "test script changes for ${PRO} "
+              fi
+          done
+          #--------------------
+          # when other files changed
+          test_dir_changed="$(echo "$files_changed" |  grep -o "test/[^/]*" | sort | uniq  || true)"
+          if [ -n "$test_dir_changed" ] && [ -z "${additionall_test_project}" ] && [ -z "$charts_changed" ] ; then
+              # add spiderppool for testing test changes
+              charts_changed=` echo "$charts_changed spiderpool" | tr -s ' ' | tr ' ' '\n' | sort | uniq | tr '\n' ' ' || true`
+              echo "detect test changes, add spiderpool, charts_changed: $charts_changed"
+          fi
+          charts_changed=` echo $charts_changed `
+          RES=""
+          for PRO in ${charts_changed} ; do
+            if [ -d "${PRO}" ] ; then
+              RES+="${PRO} "
+            fi
+          done
+          echo "changed_project=${RES}" >> $GITHUB_ENV
+          ALL_PRO=" ${RES} ${additionall_test_project} "
+          echo "test_project=${ALL_PRO}" >> $GITHUB_ENV
+
+      - name: check Chart yaml
+        run: |
+          BASE=$PWD
+          for PROJECT in ${{ env.changed_project }} ; do
+              CHART_PATH=${BASE}/${PROJECT}/chart
+              if ! grep "keywords:" ${CHART_PATH}/Chart.yaml &>/dev/null ;then
+                  echo "error, please input 'keywords' into the Chart.yaml of ${PROJECT} "
+                  exit 1
+              fi
+              NAME=` yq '.name' ${CHART_PATH}/Chart.yaml `
+              echo "chart NAME '${NAME}' in project  '${PROJECT}' "
+              [ "${NAME}" == "${PROJECT}" ] || { echo "error, chart name is not ${PROJECT}" ; exit 1 ; }
+          done
+
+      - name: check resource
+        run: |
+          BASE=$PWD
+          for PROJECT in ${{ env.changed_project }} ; do
+              CHART_PATH=${BASE}/${PROJECT}/chart
+              if helm template test ${CHART_PATH}  | grep -E "kind: DaemonSet|kind: Deployment|kind: Job|kind: CronJob" &>/dev/null ; then
+                  echo "check resource request"
+                  if ! ( helm template test ${CHART_PATH} | grep ' requests:' &>/dev/null ) ; then
+                      echo "error, did not find resource requests settings in ${PROJECT}"
+                      exit 1
+                  fi
+              fi
+          done
+
+  call_e2e:
+    uses: ./.github/workflows/call-e2e.yaml
+    needs: [check_change]
+    if: ${{ needs.check_change.outputs.project != '' }}
+    with:
+      project: ${{ needs.check_change.outputs.project }}
+      ref: ${{ github.event.pull_request.head.sha }}
+    secrets: inherit
