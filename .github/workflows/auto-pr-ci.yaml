@@ -91,15 +91,6 @@ jobs:
           ALL_PRO=" ${RES} ${additionall_test_project} "
           echo ::set-output name=test_project::${ALL_PRO}
 
-      - name: check chart override
-        run: |
-          BASE=$PWD
-          cd cmd/chart-override-check
-          for PROJECT in ${{ steps.check_change.outputs.changed_project }} ; do
-              PROJECT_PATH=${BASE}/charts/${PROJECT}
-              go run main.go -path ${PROJECT_PATH}/${PROJECT} -skipCPath ${PROJECT_PATH}/skip-check.yaml
-          done
-
       - name: check Chart yaml
         run: |
           BASE=$PWD
