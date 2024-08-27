@@ -109,7 +109,7 @@ sync: checkBin
 	|| { echo "error, failed to save charts and images to local" ; exit 1 ; } ; \
     CONFIG=" \
 source:  \n \
-     intermediateBundlesPath: ${ROOT_DIR}/$${DIR} \n \
+     intermediateBundlesPath: ${ROOT_DIR}/test/$${DIR} \n \
 target:  \n \
      containerRegistry: 127.0.0.1:30080 \n \
      repo:  \n \
