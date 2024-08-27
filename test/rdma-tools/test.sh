@@ -18,7 +18,9 @@ helm repo update chart-museum  --kubeconfig ${KIND_KUBECONFIG}
 HELM_MUST_OPTION=" --version ${CHART_VERSION} --timeout 10m0s --wait --debug --kubeconfig ${KIND_KUBECONFIG} "
 
 #==================== add your deploy code bellow =============
+
 #==================== notice , prometheus CRD has been deployed , so you no need to =============
+
 
 set -x
 
