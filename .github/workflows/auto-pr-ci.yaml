@@ -171,7 +171,7 @@ jobs:
           done
 
   call_e2e:
-    uses: ./.github/workflows/call-e2e.yml
+    uses: ./.github/workflows/call-e2e.yaml
     needs: [check_change]
     if: ${{ needs.check_change.outputs.project != '' }}
     with:

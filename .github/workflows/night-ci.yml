@@ -7,7 +7,7 @@ on:
 
 jobs:
   call_e2e:
-    uses: ./.github/workflows/call-e2e.yml
+    uses: ./.github/workflows/call-e2e.yaml
     with:
       project: ""
       ref: main
