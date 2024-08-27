@@ -12,11 +12,11 @@ PROJECT ?=
 
 .PHONY: build_chart
 build_chart:
-	@ project=$(PROJECT) ; [ -z "$(PROJECT)" ] && project=`ls ./charts` ; \
+	@ project=$(PROJECT) ; [ -z "$(PROJECT)" ] && project=`ls` ; \
 		echo "build chart for $${project}" ; \
 		for ITEM in $${project} ; do\
 			echo "===================== build $${ITEM} ====================" ; \
-			./scripts/generateChart.sh $${ITEM} ; \
+			./test/scripts/generateChart.sh $${ITEM} ; \
 		done
 
 .PHONY: e2e
