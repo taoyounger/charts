@@ -3,7 +3,7 @@ name: Nightly E2E
 on:
   schedule:
     # each day
-    - cron: "0 20 * * *"
+    - cron: "0 9 * * *"
 
 jobs:
   call_e2e:
