@@ -17,7 +17,6 @@ tolerations:
 config:
   # unload host storage modules prior to loading mofed modules
   unload_host_storage_modules: false
-  # enable loading of nfs relates storage modules from mofed container
   enable_nfsrdma: false
   # restore host drivers when container is gracefully stopped
   restore_hostdriver_on_termination: true
