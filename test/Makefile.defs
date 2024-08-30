@@ -1,0 +1,16 @@
+KIND_CLUSTER_NAME ?= charts
+
+# with kind default version
+E2E_KIND_IMAGE_TAG ?= 
+
+ifeq ($(E2E_CHINA_IMAGE_REGISTRY),true)
+    E2E_KIND_IMAGE_NAME ?= docker.m.daocloud.io/kindest/node
+else
+    E2E_KIND_IMAGE_NAME ?= docker.io/kindest/node
+endif
+
+# do not modify this ,it is also written on CI workflow file
+DOWNLOAD_DIR := $(ROOT_DIR)/test/.download
+CLUSTER_DIR := $(ROOT_DIR)/test/.cluster
+KIND_KUBECONFIG := $(CLUSTER_DIR)/$(KIND_CLUSTER_NAME)/.kube/config
+GLOBAL_KIND_CONFIG_PATH := $(ROOT_DIR)/test/yamls/kind.yaml

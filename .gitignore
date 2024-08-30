@@ -81,3 +81,9 @@ images/*/Dockerfile.dockerignore
 .dir-locals.el
 
 
+# Local Emacs files
+.dir-locals.el
+
+# e2e tmp path
+test/.cluster
+test/.download
