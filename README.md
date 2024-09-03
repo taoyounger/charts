@@ -2,6 +2,7 @@
 
 [![Chart Rdma Tools](https://github.com/spidernet-io/charts/actions/workflows/ChartRdma.yaml/badge.svg)](https://github.com/spidernet-io/charts/actions/workflows/ChartRdma.yaml)
 [![Chart OFED](https://github.com/spidernet-io/charts/actions/workflows/ChartOfed.yaml/badge.svg)](https://github.com/spidernet-io/charts/actions/workflows/ChartOfed.yaml)
+[![Nightly E2E](https://github.com/spidernet-io/charts/actions/workflows/night-ci.yml/badge.svg)](https://github.com/spidernet-io/charts/actions/workflows/night-ci.yml)
 
 ## helm chart
 
