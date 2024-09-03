@@ -96,16 +96,8 @@ deploy: checkBin
 	helm upgrade --install $(PROJECT) $(ROOT_DIR)/$(PROJECT)/chart --wait --debug --timeout 10m0s \
 	    $${HELM_MUST_OPTION} \
 		-n $(PROJECT) --create-namespace \
-		--kubeconfig $(KIND_KUBECONFIG) ; \
-	for ((N=0;N<=30;N++)); do \
-		if kubectl get pod -n $(PROJECT) -o wide --kubeconfig $(KIND_KUBECONFIG) | grep $(PROJECT) | sed '1 d' | grep -qv -i -E "Running|Completed"; then \
-			echo "Waiting for Pods to be ready..."; \
-			sleep 10; \
-		else \
-			echo "All Pods are in Running or Completed state."; \
-			exit 0 ; \
-		fi ; \
-	done; \
+		--kubeconfig $(KIND_KUBECONFIG) \
+    kubectl --kubeconfig $(KIND_KUBECONFIG) wait --for=condition=Ready pods --all -n $(PROJECT) --timeout=300s && exit 0 ; \
 	exit 1 ; \
 
 .PHONY: checkBin
