@@ -96,8 +96,15 @@ deploy: checkBin
 	helm upgrade --install $(PROJECT) $(ROOT_DIR)/$(PROJECT)/chart --wait --debug --timeout 10m0s \
 	    $${HELM_MUST_OPTION} \
 		-n $(PROJECT) --create-namespace \
-		--kubeconfig $(KIND_KUBECONFIG) \
-    kubectl --kubeconfig $(KIND_KUBECONFIG) wait --for=condition=Ready pods --all -n $(PROJECT) --timeout=300s && exit 0 ; \
+		--kubeconfig $(KIND_KUBECONFIG) ; \
+	timeout 300s bash -c '
+	while true; do
+	if kubectl --kubeconfig $(KIND_KUBECONFIG) get pods -n $(PROJECT) -o json | jq -e ".items | all(.status.phase == \"Running\")" > /dev/null; then
+		exit 0
+	fi
+	sleep 5
+	done
+	' && echo "All pods are running" || echo "Timeout or some pods are not running"
 	exit 1 ; \
 
 .PHONY: checkBin

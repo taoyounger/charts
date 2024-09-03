@@ -97,7 +97,7 @@ spec:
           startupProbe:
             exec:
               command:
-                [sh, -c, 'ls /.driver-ready']
+                [sh, -c, 'ls ./driver-ready']
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
             failureThreshold: 60
             successThreshold: 1

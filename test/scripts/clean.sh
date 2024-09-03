@@ -17,11 +17,12 @@ echo "KIND_KUBECONFIG: $KIND_KUBECONFIG"
 echo "---------- show pods -----------"
 kubectl get pod -A -o wide --kubeconfig ${KIND_KUBECONFIG}
 
-FAILED_POD=` kubectl  get pod -A -o wide --kubeconfig ${KIND_KUBECONFIG} | sed '1 d' | grep -v -i -E "Running|completed" | awk '{print $1,$2}' | tr ' ' ',' `
+FAILED_POD=` kubectl  get pod -A -o wide --kubeconfig ${KIND_KUBECONFIG} | sed '1 d' | grep -v -i "completed" | grep 'ofed' | awk '{print $1,$2}' | tr ' ' ',' `
 for ITEM in ${FAILED_POD} ; do
     POD_INFO=`echo ${ITEM} | tr ',' ' '`
     echo "------ describe pod $POD_INFO "
     kubectl describe pod -n ${POD_INFO} --kubeconfig ${KIND_KUBECONFIG}
+    kubectl logs -n ${POD_INFO} --kubeconfig ${KIND_KUBECONFIG}
 done
 
 ALL_HELM=` helm list -A  --kubeconfig ${KIND_KUBECONFIG} | sed '1 d' | awk '{print $2,$1}' | tr ' ' ',' `
