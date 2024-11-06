@@ -172,8 +172,8 @@ ${CA_NAME} ${INTERFACE_NAME} ${RDMA_ADDR} ${IP_MASK_LENGTH} infiniband 0"
 }
 
 GetLocalRdmaDeviceIP(){
-    GetLocalRoceDeviceIP
-    GetLocalIBDeviceIP
+    GetLocalRoceDeviceIP || true
+    GetLocalIBDeviceIP || true
 }
 
 CheckIPv4SameSubnet(){
