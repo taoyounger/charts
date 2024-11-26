@@ -3,7 +3,7 @@ name: rdma-test
 image:
   registry: ghcr.io
   repository: spidernet-io/rdma-tools
-  tag: "12.5.1-2fb059063ddc5a9e530f413f60f6c4bc41709649"
+  tag: "12.5.1-6375976c237a1c0ee943e1a18b9dec51b60fc08b"
   #registry: ghcr.io
   #repository: coreweave/nccl-tests
   #tag: "12.4.1-cudnn-devel-ubuntu22.04-nccl2.21.5-1-85f9143"

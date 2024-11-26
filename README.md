@@ -17,7 +17,14 @@ helm repo update
 
 chart for deploying OFED driver to install the driver of Mellanox network card
 
-release chart
+release chart and images:
+
+1. build the image from CI action
+
+2. update the image and chart version in Chart
+
+3. push the tag
+
 ```shell
 git tag ofe-driver-vXX.YY.ZZ 
 git push --tags
@@ -29,7 +36,14 @@ refer to [document](./ofed-driver/Readme.md) for usage
 
 images including kinds of RDMA tools for debugging
 
-release chart and images
+release chart and images:
+
+1. build the image from CI action
+
+2. update the image and chart version in Chart
+
+3. push the tag
+
 ```shell
 git tag rdma-tools-vXX.YY.ZZ 
 git push --tags
