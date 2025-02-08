@@ -10,9 +10,9 @@ images including kinds of RDMA tools for debugging
 
 the version of chart is '{x of cudaVersion}-{y of cudaVersion}-{custom}'.
 
-For example of chart version 'v12.5.0', '12.5' represents cuda '12.5.x' in the base image, the last '.0' represents any changes of the chart
+For example of chart version 'v12.5.0', '12.5' represents cuda '12.5.x' in the base image, the last '.0' represents any changes of the chart.
 
-tag the code and the CI will automatically release a chart
+tag the code and the CI will automatically release a chart. the image tag will be **chart version** by default.
 
 ```shell
 git tag rdma-tools-vXX.YY.ZZ 
@@ -71,6 +71,7 @@ helm install rdma-tools spiderchart/rdma-tools -f ./values.yaml
 ```
 
 ## tools in the image
+
 os: ubuntu22.04
 
 | tools         | version                                  | updated time |

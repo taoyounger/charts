@@ -25,13 +25,13 @@ jobs:
   get_info:
     runs-on: ubuntu-latest
     outputs:
-      chart_path: ${{ env.chart_path }}
+      chart_path: ${{ env.CHART_PATH }}
       code_sha: ${{ env.CODE_SHA }}
       dockerfile_dirctory: ${{ env.DOCKERFILE_PATH }}
       generateDockerfileScript: ${{ env.GEN_DOCKERFILE_SCRIPT }}
       image_name: ${{ env.IMAGE_NAME }}
       build_platform: ${{ env.BUILD_PLATFORM }}
-      image_tag: ${{ steps.get_original_ref.outputs.image_tag }}
+      image_tag: ${{ steps.generate_dockerfile.outputs.image_tag }}
     steps:
       - name: Get information
         id: get_original_ref
@@ -39,10 +39,10 @@ jobs:
           echo '${{ toJSON(github) }}'
           if ${{ github.event_name == 'workflow_dispatch' }}; then
             echo "call by workflow_dispatch"
-            echo "CODE_SHA=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
+            echo "CODE_SHA=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
           elif ${{ github.event_name == 'push' }} ; then
             echo "call by push tag"
-            echo "CODE_SHA=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+            echo "CODE_SHA=${GITHUB_REF##*/}" >> $GITHUB_ENV
           else
             exit 1
           fi
@@ -53,14 +53,16 @@ jobs:
           ref: ${{ steps.get_original_ref.outputs.code_sha }}
 
       - name: Generate Dockerfile
+        id: generate_dockerfile
         run: |
           set -x
           cd ${{ env.DOCKERFILE_PATH }}
           chmod +x ./generateDockerfile.sh
           source ./generateDockerfile.sh
-          image_tag=$( git ls-tree --full-tree HEAD -- ${{ env.DOCKERFILE_PATH }} | awk '{ print $3 }' )
+          # image_tag from current tag
+          image_tag=$(grep -Eo 'v[0-9]+.[0-9]+.[0-9]+' <<< "${{ env.CODE_SHA }}")
           [ -n "${image_tag}" ] || { echo "error, failed to get image_tag from commit id"; exit 1 ; }
-          echo "image_tag=${ENV_BASEIMAGE_CUDA_VERISON}-${image_tag}" >> $GITHUB_OUTPUT
+          echo "image_tag=${image_tag}" >> $GITHUB_OUTPUT
 
   call-image-workflow:
     needs: [get_info]
