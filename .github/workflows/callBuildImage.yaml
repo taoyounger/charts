@@ -172,7 +172,7 @@ jobs:
           echo "" >> image-digest/${{ env.image_name }}.txt
 
       - name: Upload artifact digests
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4.6.0
         with:
           name: image-digest
           path: image-digest
