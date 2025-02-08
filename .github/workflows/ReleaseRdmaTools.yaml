@@ -6,6 +6,7 @@ env:
   IMAGE_NAME: rdma-tools
   BUILD_PLATFORM: linux/amd64
   GEN_DOCKERFILE_SCRIPT: rdma-tools/image/generateDockerfile.sh
+  CODE_SHA: ''
 
 on:
   workflow_dispatch:
@@ -25,22 +26,23 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       chart_path: ${{ env.chart_path }}
-      code_sha: ${{ env.code_sha }}
+      code_sha: ${{ env.CODE_SHA }}
+      dockerfile_dirctory: ${{ env.DOCKERFILE_PATH }}
+      generateDockerfileScript: ${{ env.GEN_DOCKERFILE_SCRIPT }}
+      image_name: ${{ env.IMAGE_NAME }}
+      build_platform: ${{ env.BUILD_PLATFORM }}
+      image_tag: ${{ steps.get_original_ref.outputs.image_tag }}
     steps:
       - name: Get information
         id: get_original_ref
         run: |
           echo '${{ toJSON(github) }}'
-          echo "dockerfile_dirctory=${{ env.DOCKERFILE_PATH }}" >> $GITHUB_ENV
-          echo "generateDockerfileScript=${{ env.GEN_DOCKERFILE_SCRIPT }}" >> $GITHUB_ENV
           if ${{ github.event_name == 'workflow_dispatch' }}; then
             echo "call by workflow_dispatch"
-            echo "code_sha=${{ github.event.inputs.ref }}" >> $GITHUB_ENV
-            echo "chart_path=${{ env.CHART_PATH }}" >> $GITHUB_ENV
+            echo "CODE_SHA=${{ github.event.inputs.ref }}" >> $GITHUB_OUTPUT
           elif ${{ github.event_name == 'push' }} ; then
             echo "call by push tag"
-            echo "code_sha=${GITHUB_REF##*/}" >> $GITHUB_ENV
-            echo "chart_path=${{ env.CHART_PATH }}" >> $GITHUB_ENV
+            echo "CODE_SHA=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           else
             exit 1
           fi
@@ -48,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ env.code_sha }}
+          ref: ${{ steps.get_original_ref.outputs.code_sha }}
 
       - name: Generate Dockerfile
         run: |
@@ -58,7 +60,7 @@ jobs:
           source ./generateDockerfile.sh
           image_tag=$( git ls-tree --full-tree HEAD -- ${{ env.DOCKERFILE_PATH }} | awk '{ print $3 }' )
           [ -n "${image_tag}" ] || { echo "error, failed to get image_tag from commit id"; exit 1 ; }
-          echo "image_tag=${ENV_BASEIMAGE_CUDA_VERISON}-${image_tag}" >> $GITHUB_ENV
+          echo "image_tag=${ENV_BASEIMAGE_CUDA_VERISON}-${image_tag}" >> $GITHUB_OUTPUT
 
   call-image-workflow:
     needs: [get_info]
@@ -66,9 +68,9 @@ jobs:
     with:
       code_sha: ${{ needs.get_info.outputs.code_sha }}
       push_image: true
-      image_name: ${{ env.IMAGE_NAME }}
-      dockerfile_dirctory: ${{ env.DOCKERFILE_PATH }}
-      build_platform: ${{ env.BUILD_PLATFORM }}
+      image_name: ${{ needs.get_info.outputs.image_name }}
+      dockerfile_dirctory: ${{ needs.get_info.outputs.dockerfile_dirctory }}
+      build_platform: ${{ needs.get_info.outputs.build_platform }}
       upload_artifact: false
       image_tag: ${{ needs.get_info.outputs.image_tag }}
       generateDockerfileScript: ${{ needs.get_info.outputs.generateDockerfileScript }}
