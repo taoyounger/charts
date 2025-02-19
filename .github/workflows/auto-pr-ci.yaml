@@ -1,4 +1,4 @@
-name: PR E2E C
+name: PR E2E CI
 
 on:
   pull_request_target:
