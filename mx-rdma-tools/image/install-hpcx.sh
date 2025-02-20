@@ -12,7 +12,7 @@ set -o nounset
 echo "--------------- install hpxc -------------------"
 # example : ENV_DOWNLOAD_HPCX_URL=https://content.mellanox.com/hpc/hpc-x/v2.19/hpcx-v2.19-gcc-mlnx_ofed-ubuntu22.04-cuda12-x86_64.tbz
 HPCX_DEST_DIR="/opt/hpcx"
-HPCX_DISTRIBUTION=$( echo "${ENV_DOWNLOAD_HPCX_URL}" | awk -F'/' '{print $NF}' | sed 's?.tbz??'  )
+HPCX_DISTRIBUTION=$(echo "${ENV_DOWNLOAD_HPCX_URL}" | awk -F'/' '{print $NF}' | sed 's?.tbz??')
 echo "download ${HPCX_DISTRIBUTION} from ${ENV_DOWNLOAD_HPCX_URL}"
 
 cd /tmp
@@ -20,7 +20,6 @@ wget -q -O - ${ENV_DOWNLOAD_HPCX_URL} | tar xjf -
 grep -IrlF "/build-result/${HPCX_DISTRIBUTION}" ${HPCX_DISTRIBUTION} | xargs -rd'\n' sed -i -e "s:/build-result/${HPCX_DISTRIBUTION}:${HPCX_DEST_DIR}:g"
 sed -i -E 's?mydir=.*?mydir='"${HPCX_DEST_DIR}"'?' ${HPCX_DISTRIBUTION}/hpcx-init.sh
 mv ${HPCX_DISTRIBUTION} ${HPCX_DEST_DIR}
-
 
 echo "--------------- install Bandwidthtest -------------------"
 echo "build cuda sample: ${ENV_VERSION_CUDA_SAMPLE}"
@@ -41,4 +40,4 @@ rm -rf /tmp/build
 
 echo "--------------- install nvbandwidth -------------------"
 echo "build nvbandwidth: ${ENV_VERSION_NVBANDWIDTH}"
-apt install  -y --no-install-recommends  wget cmake
+apt install -y --no-install-recommends wget cmake

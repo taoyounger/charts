@@ -148,6 +148,7 @@ jobs:
           outputs: type=tar,dest=/tmp/${{ env.upload_image_artifact_name }}.tar
           tags: |
             ${{ env.image_full_name }}:${{ env.image_tag }}
+            ${{ env.image_full_name }}:latest
           build-args: |
             GIT_COMMIT_VERSION=${{ env.commitver }}
             GIT_COMMIT_TIME=${{ env.committime }}
