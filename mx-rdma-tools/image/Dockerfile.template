@@ -64,7 +64,6 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get upgrade -y
 
 COPY --from=buildtools /buildperftest/bin/*   /usr/bin/
-COPY --from=buildtools /opt/hpcx              /opt/hpcx
 
 WORKDIR /
 RUN chmod +x /tools/* && mv /tools/* /usr/sbin && rm -rf /tools
@@ -74,7 +73,7 @@ RUN chmod +x /test.sh && /test.sh && rm -f /test.sh
 
 
 # Begin auto-generated paths
-ENV MACA_PATH=${MACA_PATH:-"/opt/maca"}
+ENV MACA_PATH=/opt/maca
 ENV LD_LIBRARY_PATH=${MACA_PATH}/lib:${MACA_PATH}/ompi/lib
 ENV BENCH_NAME=${MACA_PATH}/samples/mccl_tests/perf/tests/all_reduce_perf
 ENV OPAL_PREFIX=/opt/maca/ompi/
