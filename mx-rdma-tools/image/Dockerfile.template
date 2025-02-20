@@ -3,7 +3,7 @@
 
 #============= build tools============
 
-FROM <<ENV_BASEIMAGE_OS_VERISON>> as buildtools
+FROM ubuntu:22.04 as buildtools
 # TARGETOS is an automatic platform ARG enabled by Docker BuildKit.
 ARG TARGETOS
 # TARGETARCH is an automatic platform ARG enabled by Docker BuildKit.
@@ -29,7 +29,7 @@ COPY /install-hpcx.sh /install-hpcx.sh
 RUN chmod +x /install-hpcx.sh && /install-hpcx.sh
 
 #========== root image ==============
-FROM <<ENV_BASEIMAGE_OS_VERISON>> as rootfs
+FROM ubuntu:22.04 as rootfs
 
 # TARGETOS is an automatic platform ARG enabled by Docker BuildKit.
 ARG TARGETOS
