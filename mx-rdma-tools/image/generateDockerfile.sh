@@ -10,6 +10,12 @@ export ENV_LD_LIBRARY_PATH="/usr/local/cuda-12.5/compat:/usr/lib/x86_64-linux-gn
 # https://github.com/linux-rdma/perftest
 export ENV_VERSION_PERFTEST=${ENV_VERSION_PERFTEST:-"24.04.0-0.41"}
 
+# https://github.com/NVIDIA/nccl-tests/tags
+export ENV_VERSION_NCCLTEST=${ENV_VERSION_NCCLTEST:-"v2.13.10"}
+
+# https://github.com/NVIDIA/cuda-samples
+export ENV_VERSION_CUDA_SAMPLE=${ENV_VERSION_CUDA_SAMPLE:-"v12.5"}
+
 # https://developer.nvidia.com/networking/hpc-x
 export ENV_VERSION_HPCX=${ENV_VERSION_HPCX:-"v2.19"}
 export ENV_DOWNLOAD_HPCX_URL="https://content.mellanox.com/hpc/hpc-x/${ENV_VERSION_HPCX}/hpcx-${ENV_VERSION_HPCX}-gcc-mlnx_ofed-${ENV_BASEIMAGE_OS_VERISON}-cuda12-x86_64.tbz"
@@ -19,6 +25,10 @@ export ENV_DOWNLOAD_OFED_DEB_SOURCE="https://linux.mellanox.com/public/repo/mlnx
 # https://github.com/NVIDIA/gdrcopy/tree/master
 # 2024.7.30
 export ENV_GDRCOPY_COMMIT=${ENV_GDRCOPY_COMMIT:-"1366e20d140c5638fcaa6c72b373ac69f7ab2532"}
+
+# https://github.com/NVIDIA/nvbandwidth
+# 2024.8.14
+export ENV_VERSION_NVBANDWIDTH=${ENV_VERSION_NVBANDWIDTH:-"v0.5"}
 
 echo "------------------------ Generate Dockerfile ---------------------------"
 
