@@ -2,15 +2,13 @@
 
 # for base image tag
 
-export ENV_BASEIMAGE_OS_VERISON=${ENV_BASEIMAGE_OS_VERISON:-"ubuntu22.04"}
+export ENV_BASEIMAGE_OS_VERISON=${ENV_BASEIMAGE_OS_VERISON:-"ubuntu:22.04"}
 
 # for cuda and libgdrapi.so
 export ENV_LD_LIBRARY_PATH="/usr/local/cuda-12.5/compat:/usr/lib/x86_64-linux-gnu"
 
 # https://github.com/linux-rdma/perftest
 export ENV_VERSION_PERFTEST=${ENV_VERSION_PERFTEST:-"24.04.0-0.41"}
-# https://github.com/NVIDIA/nccl-tests/tags
-export ENV_VERSION_NCCLTEST=${ENV_VERSION_NCCLTEST:-"v2.13.10"}
 
 # https://developer.nvidia.com/networking/hpc-x
 export ENV_VERSION_HPCX=${ENV_VERSION_HPCX:-"v2.19"}
@@ -21,10 +19,6 @@ export ENV_DOWNLOAD_OFED_DEB_SOURCE="https://linux.mellanox.com/public/repo/mlnx
 # https://github.com/NVIDIA/gdrcopy/tree/master
 # 2024.7.30
 export ENV_GDRCOPY_COMMIT=${ENV_GDRCOPY_COMMIT:-"1366e20d140c5638fcaa6c72b373ac69f7ab2532"}
-
-# https://github.com/NVIDIA/nvbandwidth
-# 2024.8.14
-export ENV_VERSION_NVBANDWIDTH=${ENV_VERSION_NVBANDWIDTH:-"v0.5"}
 
 echo "------------------------ Generate Dockerfile ---------------------------"
 
