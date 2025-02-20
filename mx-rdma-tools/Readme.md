@@ -43,18 +43,21 @@ affinity:
               - worker2
 
 # sriov interfaces
-extraAnnotations:
-  v1.multus-cni.io/default-network: spiderpool/calico
-  k8s.v1.cni.cncf.io/networks: |-
-      [{"name":"gpu1-sriov","namespace":"spiderpool"},
-       {"name":"gpu2-sriov","namespace":"spiderpool"}]
+# extraAnnotations:
+#   v1.multus-cni.io/default-network: spiderpool/calico
+#   k8s.v1.cni.cncf.io/networks: |-
+#       [{"name":"gpu1-sriov","namespace":"spiderpool"},
+#        {"name":"gpu2-sriov","namespace":"spiderpool"}]
 
 # sriov resource
-resources:
-  limits:
-    spidernet.io/gpu1sriov: 1
-    spidernet.io/gpu2sriov: 1
+# resources:
+#   limits:
+#     spidernet.io/gpu1sriov: 1
+#     spidernet.io/gpu2sriov: 1
     # nvidia.com/gpu: 1
+
+# using hostNetwork
+hostnetwork: false
 
 #securityContext:
 #  # required by gdrcopy test
@@ -65,7 +68,6 @@ EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`
 helm install rdma-tools spiderchart/mx-rdma-tools -f ./values.yaml
-
 ```
 
 ## tools in the image
