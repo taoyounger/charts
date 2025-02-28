@@ -58,15 +58,18 @@ resources:
     spidernet.io/gpu2sriov: 1
     # nvidia.com/gpu: 1
 
+#hostnetwork: false
+#ssh_port: 2022
+
 #securityContext:
-#  # required by gdrcopy test
+#  # required by gdrcopy test or hostnetwork
 #  privileged: true
 #  capabilities:
 #    add: [ "IPC_LOCK" ]
 EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`
-helm install rdma-tools spiderchart/rdma-tools -f ./values.yaml
+helm install rdma-tools spiderchart/rdma-tools -n rdma --create-namespace -f ./values.yaml
 
 ```
 

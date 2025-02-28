@@ -9,6 +9,7 @@ set -o errexit
 set -o nounset
 
 CURRENT_FILENAME=$( basename $0 )
+ENV_SSH_PORT=${ENV_SSH_PORT:-"2022"}
 
 source /usr/sbin/rdmatools
 
@@ -25,7 +26,8 @@ mkdir -p ${RESULT_DIR}
 
 echo "collecting local information ..."
 LOCAL_IP_INFO=$( GetUpAllIP )
-LOCAL_ENDPOINT_IP=$( ip -4 addr show eth0 | grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}'	 )
+LOCAL_INT=$( ip r | grep default | head -1 | grep -oE "dev [^[:space:]]+"  | awk '{print $2}' )
+LOCAL_ENDPOINT_IP=$( ip -4 addr show ${LOCAL_INT} | grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}'	 )
 
 echo "collecting remote information ..."
 EXPECT_NUM=0
@@ -33,7 +35,7 @@ for ADDR in ${POD_IP_LIST} ; do
     ((EXPECT_NUM+=1))
     (
         echo "collecting information from ${ADDR}"
-        REMOTE_IP_INFO=$( ssh ${ADDR} " source /usr/sbin/rdmatools && GetUpAllIP " )
+        REMOTE_IP_INFO=$( ssh -p ${ENV_SSH_PORT} ${ADDR} " source /usr/sbin/rdmatools && GetUpAllIP " )
         if [ -n "${REMOTE_IP_INFO}" ] ; then
               echo "${REMOTE_IP_INFO}" > ${REMOTE_INFOR_DIR}/${ADDR}
         else

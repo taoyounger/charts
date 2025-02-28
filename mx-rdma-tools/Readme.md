@@ -58,16 +58,18 @@ affinity:
 
 # using hostNetwork
 hostnetwork: false
+#ssh_port: 2022
 
 #securityContext:
 #  # required by gdrcopy test
 #  privileged: true
 #  capabilities:
 #    add: [ "IPC_LOCK" ]
+
 EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`
-helm install rdma-tools spiderchart/mx-rdma-tools -f ./values.yaml
+helm install rdma-tools spiderchart/mx-rdma-tools -n rdma --create-namespace -f ./values.yaml
 ```
 
 ## tools in the image
