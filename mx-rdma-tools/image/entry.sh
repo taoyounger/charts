@@ -5,6 +5,9 @@
 
 source /usr/sbin/rdmatools
 
+ENV_SSH_PORT=${ENV_SSH_PORT:-"2022"}
+sed -i -E "s/.*Port 22.*/Port ${ENV_SSH_PORT}/" /etc/ssh/sshd_config
+
 service ssh start
 ulimit -l 2000000
 ulimit -a

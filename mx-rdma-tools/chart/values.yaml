@@ -55,3 +55,6 @@ extraVolumeMounts: []
 
 service:
   type: ClusterIP
+
+# ssh port 
+ssh_port: 2022
