@@ -58,12 +58,14 @@ affinity:
 
 # using hostNetwork
 hostnetwork: false
+#ssh_port: 2022
 
 #securityContext:
 #  # required by gdrcopy test
 #  privileged: true
 #  capabilities:
 #    add: [ "IPC_LOCK" ]
+
 EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`

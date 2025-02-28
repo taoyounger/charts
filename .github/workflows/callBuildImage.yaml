@@ -179,6 +179,11 @@ jobs:
           path: image-digest
           retention-days: 1
 
+      - name: status
+        shell: bash
+        run: |
+          echo "succeeded to build image: ${{ env.image_full_name }}:${{ env.image_tag }}"
+
   image-digests:
     name: Display Digests
     runs-on: ubuntu-latest
