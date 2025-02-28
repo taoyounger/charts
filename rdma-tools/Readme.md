@@ -69,7 +69,7 @@ resources:
 EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`
-helm install rdma-tools spiderchart/rdma-tools -f ./values.yaml
+helm install rdma-tools spiderchart/rdma-tools -n rdma --create-namespace -f ./values.yaml
 
 ```
 

@@ -69,7 +69,7 @@ hostnetwork: false
 EOF
 
 # for China user, add `--set image.registry=ghcr.m.daocloud.io`
-helm install rdma-tools spiderchart/mx-rdma-tools -f ./values.yaml
+helm install rdma-tools spiderchart/mx-rdma-tools -n rdma --create-namespace -f ./values.yaml
 ```
 
 ## tools in the image
