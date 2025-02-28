@@ -40,7 +40,9 @@ LOCAL_RDMA_INFO=$(GetLocalRdmaDeviceIP)
     echo "error, failed to get local rdma information"
     exit 1
 }
-LOCAL_ENDPOINT_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}')
+LOCAL_INT=$( ip r | grep default | head -1 | grep -oE "dev [^[:space:]]+"  | awk '{print $2}' )
+LOCAL_ENDPOINT_IP=$( ip -4 addr show ${LOCAL_INT} | grep -oP '(?<=inet\s)[0-9]+(\.[0-9]+){3}'	 )
+
 
 echo "collecting remote information ..."
 EXPECT_NUM=0

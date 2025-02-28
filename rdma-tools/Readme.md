@@ -58,8 +58,11 @@ resources:
     spidernet.io/gpu2sriov: 1
     # nvidia.com/gpu: 1
 
+#hostnetwork: false
+#ssh_port: 2022
+
 #securityContext:
-#  # required by gdrcopy test
+#  # required by gdrcopy test or hostnetwork
 #  privileged: true
 #  capabilities:
 #    add: [ "IPC_LOCK" ]
