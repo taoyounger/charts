@@ -135,7 +135,7 @@ jobs:
     secrets: inherit
 
   call-chart-workflow:
-    needs: [ call-image-nccl-workflow, call-image-light-workflow ]
+    needs: [ get_nccl_info, get_light_info, call-image-nccl-workflow, call-image-light-workflow ]
     uses: ./.github/workflows/callBuildChart.yaml
     with:
       code_sha: ${{ needs.get_nccl_info.outputs.code_sha }}
