@@ -64,6 +64,9 @@ resources:
 #hostnetwork: false
 #ssh_port: 2022
 
+# listen port of http and udp server. Maybe change it in hostnetwork mode
+# echo_server_port: 80
+
 securityContext:
   # required by gdrcopy test or hostnetwork
   privileged: true
@@ -116,4 +119,31 @@ os: ubuntu22.04
 * testNcclTest
 
 * testOsu
+
+## echo server
+
+容器中运行了 http 和 udp server 服务，能够回显请求数据
+
+```bash
+# Using curl with IPv4 to visit http server
+curl -4 http://172.26.85.103
+
+# Using curl with IPv6 to visit http server
+curl -6 http://[fc26::8589]
+
+```
+
+```bash
+# Using netcat
+echo "Hello" | nc -u 172.26.85.103 80
+
+# Using socat with IPv4
+echo "Hello" | socat - UDP4:172.26.85.103:80
+
+# Using socat with IPv6
+echo "Hello" | socat - UDP6:[fc26::8589]:80
+
+# Using ncat (part of nmap)
+echo "Hello" | ncat -u 172.26.85.103 80
+```
 
