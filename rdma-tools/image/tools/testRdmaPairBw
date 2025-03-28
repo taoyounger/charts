@@ -94,6 +94,7 @@ WORKDIR="/tmp/${CURRENT_FILENAME}-$(date +%Y%m%d%H%M%S%N)"
 REMOTE_INFOR_DIR="${WORKDIR}/remoteip"
 REMOTE_OUTPUT_DIR="${WORKDIR}/output"
 TASK_FINISH_DIR="${WORKDIR}/ready"
+STATISTIC_DIR="${WORKDIR}/statistic"
 RESULT_DIR="${WORKDIR}/result"
 mkdir -p ${WORKDIR}
 mkdir -p ${REMOTE_INFOR_DIR}
@@ -101,6 +102,7 @@ mkdir -p ${RESULT_DIR}
 rm -rf ${RESULT_DIR}/*
 mkdir -p ${REMOTE_OUTPUT_DIR}
 mkdir -p ${TASK_FINISH_DIR}
+mkdir -p ${STATISTIC_DIR}
 
 echo "============== WORKDIR directory: ${WORKDIR} ===================="
 
@@ -172,18 +174,27 @@ RunClient() {
     # reset the port
     PORT=${START_PORT}
     TASK_COUNTER=0
-    while read LINE; do
-        REMOTE_DEVICE=$(echo "${LINE}" | awk '{print $1}')
-        REMOTE_INTERFACE=$(echo "${LINE}" | awk '{print $2}')
-        REMOTE_IP=$(echo "${LINE}" | awk '{print $3}')
-        REMOTE_MASK=$(echo "${LINE}" | awk '{print $4}')
-        REMOTE_PROTOCOL=$(echo "${LINE}" | awk '{print $5}')
-        REMOTE_INDEX=$(echo "${LINE}" | awk '{print $6}')
+
+    # 将文件内容读取到数组中，避免在循环中执行SSH命令时stdin被重定向
+    mapfile -t SERVER_LINES < ${REMOTE_INFOR_DIR}/${REMOTE_SERVER}
+    # 将文件内容读取到数组中，避免在循环中执行SSH命令时stdin被重定向
+    mapfile -t CLIENT_LINES < ${REMOTE_INFOR_DIR}/${REMOTE_CLIENT}
+
+    # 使用数组迭代而不是while read
+    for SERVER_LINE in "${SERVER_LINES[@]}"; do
+
+        REMOTE_DEVICE=$(echo "${SERVER_LINE}" | awk '{print $1}')
+        REMOTE_INTERFACE=$(echo "${SERVER_LINE}" | awk '{print $2}')
+        REMOTE_IP=$(echo "${SERVER_LINE}" | awk '{print $3}')
+        REMOTE_MASK=$(echo "${SERVER_LINE}" | awk '{print $4}')
+        REMOTE_PROTOCOL=$(echo "${SERVER_LINE}" | awk '{print $5}')
+        REMOTE_INDEX=$(echo "${SERVER_LINE}" | awk '{print $6}')
         [ -n "${REMOTE_DEVICE}" ] || continue 
 
-        #OLD=$IFS
-        #IFS=$'\n'
-        while read CLIENT_LINE; do
+        # echo "REMOTE_DEVICE=${REMOTE_DEVICE}  REMOTE_INTERFACE=${REMOTE_INTERFACE}  REMOTE_IP=${REMOTE_IP}  REMOTE_MASK=${REMOTE_MASK} REMOTE_PROTOCOL=${REMOTE_PROTOCOL} REMOTE_INDEX=${REMOTE_INDEX}" 
+        # REMOTE_DEVICE=mlx5_16  REMOTE_INTERFACE=net4  REMOTE_IP=172.17.4.58  REMOTE_MASK=24 REMOTE_PROTOCOL=RoceV2 REMOTE_INDEX=3
+
+        for CLIENT_LINE in "${CLIENT_LINES[@]}"; do
             #IFS=$OLD
             echo "* CLIENT_LINE: ${CLIENT_LINE}"
             LOCAL_DEVICE=$(echo "${CLIENT_LINE}" | awk '{print $1}')
@@ -249,10 +260,12 @@ RunClient() {
             fi
             echo ""
 
-        done <${REMOTE_INFOR_DIR}/${REMOTE_CLIENT}
-
+        done
         (( PORT = PORT + 1))
-    done <${REMOTE_INFOR_DIR}/${REMOTE_SERVER}
+
+        # wait the remote server to restart
+        sleep 1
+    done
 
     printf "_____________________________________________________________________________________________________________________________________________________\n" >>${RESULT_FILE}
 
@@ -282,12 +295,14 @@ RunPerOnHost() {
         exit 1
     }
     PORT=${START_PORT}
-
     echo "clean all server on ${REMOTE_HOST}"
-    #ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} " PID=\`ps aux | grep ${CMD_CLI} | grep -v grep | awk '{print \$2}' \` ; [ -n \"\${PID}\" ] && { echo \"\${PID}\" | xargs -n 1 -i  kill -9 {} ; } " || true
-    ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "killall -9 ${CMD_CLI}" || true
+    #ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "killall -9 ${CMD_CLI}" || true
+    ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "stopServerAlways ${CMD_CLI}" || true
+    sleep 2
 
-    while read LINE; do
+    # 将文件内容读取到数组中，避免在循环中执行SSH命令时stdin被重定向
+    mapfile -t REMOTE_LINES < ${REMOTE_INFOR_DIR}/${REMOTE_HOST}
+    for LINE in "${REMOTE_LINES[@]}"; do
         REMOTE_DEVICE=$(echo "${LINE}" | awk '{print $1}')
         REMOTE_INTERFACE=$(echo "${LINE}" | awk '{print $2}')
         REMOTE_IP=$(echo "${LINE}" | awk '{print $3}')
@@ -301,16 +316,25 @@ RunPerOnHost() {
         OPTIONS+=" -p ${PORT} "
         echo "server on remote ${REMOTE_HOST} for ${REMOTE_INTERFACE} with ${REMOTE_IP}: ${CMD_CLI} ${OPTIONS}"
         (
-            ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "${CMD_CLI} ${OPTIONS} " >/dev/null || true
-            #ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "${CMD_CLI} ${OPTIONS} " &>/dev/null
+            #ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "${CMD_CLI} ${OPTIONS} " >/dev/null || true
+            ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "runServerAlways '${CMD_CLI} ${OPTIONS}' " >/dev/null || true
         )&
 
         ((PORT=PORT+1))
 
-    done <${REMOTE_INFOR_DIR}/${REMOTE_HOST}
+    done
 
 }
 
+StopAllServer(){
+
+    for ADDR in ${ALL_HOST_LIST} ; do
+        echo "clean all server on ${ADDR}"
+        #ssh  -p ${ENV_SSH_PORT} ${REMOTE_HOST} "killall -9 ${CMD_CLI}" || true
+        ssh  -p ${ENV_SSH_PORT} ${ADDR} "stopServerAlways ${CMD_CLI}" || true
+    done
+    sleep 2
+}
 
 TestRdma() {
 
@@ -387,11 +411,72 @@ TestRdma() {
 
 }
 
+RecordRDMAStatistic(){
+    filename="$1"
+
+    for POD in ${POD_IP_LIST} ; do
+        mkdir -p ${STATISTIC_DIR}/${POD} || true
+        echo ""
+        echo "=========================== show rdma statistic on pod  ${POD}==========================="
+        { ssh  -p ${ENV_SSH_PORT} ${POD} "rdma statistic" > ${STATISTIC_DIR}/${POD}/${filename}; } || true
+        cat ${STATISTIC_DIR}/${POD}/${filename}
+    done
+    echo ""
+
+}
+
+RDMAStatisticSummary(){
+
+    for POD in ${POD_IP_LIST} ; do
+        printf "_____________________________________________________________________________________________________________________________________________\n" 
+        printf "rdma statistic on pod ${POD}\n" 
+        printf "%-30s\t%-30s\t%-30s\t%-30s\t%-30s\n" "deviceName" "result" "out_of_sequence before/after" "out_of_buffer before/after" "cnp_sent before/after"
+        printf "_____________________________________________________________________________________________________________________________________________\n"
+
+        while read line; do
+            DEVICE_NAME=$( grep -oE "link [^[:space:]]+" <<< "${line}" | awk '{print $2}' )
+            NEW_LINE=$( grep "link ${DEVICE_NAME} " ${STATISTIC_DIR}/${POD}/new )
+            if [ -z "${NEW_LINE}" ] ; then
+                echo "error! failed to find information of ${DEVICE_NAME} in new file"
+                continue
+            fi
+
+            OLD_OUT_OF_SEQUENCE=$( grep -Eo " out_of_sequence [0-9]+ " <<< "${line}" | awk '{print $2}' )
+            NEW_OUT_OF_SEQUENCE=$( grep -Eo " out_of_sequence [0-9]+ " <<< "${NEW_LINE}" | awk '{print $2}' )
+
+            # it only exists in PF    
+            OLD_CNP_SENT=$( grep -Eo " np_cnp_sent [0-9]+ " <<< "${line}" | awk '{print $2}' ) || true
+            NEW_CNP_SENT=$( grep -Eo " np_cnp_sent [0-9]+ " <<< "${NEW_LINE}" | awk '{print $2}' ) || true
+
+            OLD_OUT_OF_BUFFER=$( grep -Eo " out_of_buffer [0-9]+ " <<< "${line}" | awk '{print $2}' )
+            NEW_OUT_OF_BUFFER=$( grep -Eo " out_of_buffer [0-9]+ " <<< "${NEW_LINE}" | awk '{print $2}' )
+
+            if [ -z "${OLD_OUT_OF_SEQUENCE}" ] || [ -z "${NEW_OUT_OF_SEQUENCE}" ] ; then
+                echo "error! failed to get out_of_sequence from line: ${line}"
+                continue
+            fi
+
+            FLAG="ok"
+            if (( OLD_OUT_OF_SEQUENCE != NEW_OUT_OF_SEQUENCE )) ; then
+                FLAG="fail"
+            fi
+            if (( OLD_OUT_OF_BUFFER != NEW_OUT_OF_BUFFER )) ; then
+                FLAG="fail"
+            fi
+
+            printf "%-30s\t%-30s\t%-30s\t%-30s\t%-30s\n" "${DEVICE_NAME}" "${FLAG}" "${OLD_OUT_OF_SEQUENCE}/${NEW_OUT_OF_SEQUENCE}" "${OLD_OUT_OF_BUFFER}/${NEW_OUT_OF_BUFFER}" "${OLD_CNP_SENT}/${NEW_CNP_SENT}"
+
+        done < ${STATISTIC_DIR}/${POD}/old
+        printf "_____________________________________________________________________________________________________________________________________________\n"
+        echo ""
+    done
+
+}
 
 #-------------------------
 DURATION=${DURATION:-"60"}
 LOOP_TIMES=${LOOP_TIMES:-"1"}
-START_PORT=${START_PORT:-"10001"}
+START_PORT=${START_PORT:-"10000"}
 # run all RDMA client asynchronously for each rdma device and each node
 ASYNCHRONOUS=${ASYNCHRONOUS:-"false"}
 SAME_NETWORK_TRACK=${SAME_NETWORK_TRACK:-"true"}
@@ -408,6 +493,10 @@ CMD_CLI="${BW_CMD_CLI}"
 CMD_OPTIONS="${BW_CMD_OPTIONS}"
 
 echo "run ${LOOP_TIMES} times with duration ${DURATION} of ${LOOP_TIMES} round, asynchronously is ${ASYNCHRONOUS}"
+
+
+RecordRDMAStatistic "old"
+
 for ((ROUND_COUNTER=1;ROUND_COUNTER<=${LOOP_TIMES};ROUND_COUNTER++)); do
     echo "===================================== round ${ROUND_COUNTER} : sequential order test ===================================="
 
@@ -426,10 +515,12 @@ for ((ROUND_COUNTER=1;ROUND_COUNTER<=${LOOP_TIMES};ROUND_COUNTER++)); do
     echo ""
 done
 
+RecordRDMAStatistic "new"
+StopAllServer
 
 echo ""
 echo ""
-echo "========================================== summary report ============================================================="
+echo "========================================== summary bandwidth report ============================================================="
 echo ""
 echo "------------------ ${CURRENT_FILENAME} summary from ${RESULT_DIR}-------------------------"
 echo ""
@@ -438,3 +529,10 @@ for FILE_NAME in ${FILE_LIST}; do
     cat ${RESULT_DIR}/${FILE_NAME}
     echo ""
 done
+
+echo ""
+echo ""
+echo "========================================== summary about out of sequence  ============================================================="
+echo ""
+RDMAStatisticSummary
+
